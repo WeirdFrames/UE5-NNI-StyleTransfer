@@ -106,6 +106,8 @@ void FRealtimeStyleTransferViewExtension::CopyTextureFromCPUToGPU(FRHICommandLis
 //------------------------------------------------------------------------------
 void FRealtimeStyleTransferViewExtension::CopyTextureFromGPUToCPU(FRHICommandListImmediate& RHICmdList, FRHITexture2D* Texture)
 {
+	double startSeconds = FPlatformTime::Seconds();
+
 	const int PixelCount = Width * Height;
 
 	struct FReadSurfaceContext
@@ -130,15 +132,21 @@ void FRealtimeStyleTransferViewExtension::CopyTextureFromGPUToCPU(FRHICommandLis
 		readSurfaceContext.Flags);
 
 	InputImageCPU.Reset();
-	InputImageCPU.Reserve(PixelCount * 3);
+	InputImageCPU.SetNumZeroed(PixelCount * 3);
 
-	for (int i = 0; i < RawImage.Num(); i++)
-	{
-		const FColor& Pixel = RawImage[i];
-		InputImageCPU.Add(Pixel.R);
-		InputImageCPU.Add(Pixel.G);
-		InputImageCPU.Add(Pixel.B);
-	}
+	ParallelFor(RawImage.Num(), [&](int32 Idx) {
+		const int i = Idx * 3;
+		const FColor& Pixel = RawImage[Idx];
+
+		InputImageCPU[i] = Pixel.R;
+		InputImageCPU[i + 1] = Pixel.G;
+		InputImageCPU[i + 2] = Pixel.B;
+		});
+
+	// print time elapsed
+	double secondsElapsed = FPlatformTime::Seconds() - startSeconds;
+
+	UE_LOG(LogTemp, Log, TEXT("Read pixel completed in %f."), secondsElapsed)
 }
 
 //------------------------------------------------------------------------------
@@ -163,11 +171,18 @@ void FRealtimeStyleTransferViewExtension::ResizeScreenImageToMatchModel()
 	// Height, Width, Channel to Channel, Height, Width
 	const int inputSize = 224 * 224 * 3;
 	ModelInputImage.Reset();
-	ModelInputImage.Reserve(inputSize);
+	ModelInputImage.SetNumZeroed(inputSize);
+
 	for (size_t ch = 0; ch < 3; ++ch) {
-		for (size_t i = ch; i < inputSize; i += 3) {
-			ModelInputImage.Add(vec[i]);
-		}
+		const int blockSize = inputSize / 3;
+
+		ParallelFor(blockSize, [&](int32 Idx) {
+			const int i = (Idx * 3) + ch;
+
+			const int stride = ch * blockSize;
+
+			ModelInputImage[Idx + stride] = vec[i];
+		});
 	}
 }
 
@@ -181,31 +196,30 @@ void FRealtimeStyleTransferViewExtension::ResizeModelImageToMatchScreen()
 	}
 
 	cv::Mat resultImage(224, 224, CV_8UC3, ModelOutputImage.GetData());
-	//cv::Mat resultoutputImage(Height, Width, CV_8UC3);
 	cv::resize(resultImage, resultImage, cv::Size(Width, Height));
-
-	//cv::imwrite("C:/code/ue5-onnxruntime/FPStyleTransfer/Content/resultImage.png", resultImage);
 
 	const uint8* RawPixel = resultImage.data;
 	const int PixelCount = Width * Height;
 	StylizedImageCPU.Reset();
-	StylizedImageCPU.Reserve(PixelCount);
-	int y = 0;
-	for (int i = 0; i < PixelCount; i++)
-	{
+	StylizedImageCPU.SetNumZeroed(PixelCount);
+
+	ParallelFor(PixelCount, [&](int32 Idx) {
+		const int i = Idx * 3;
+
 		uint32 R, G, B;
-		R = RawPixel[y++];
-		G = RawPixel[y++];
-		B = RawPixel[y++];
+
+		R = RawPixel[i];
+		G = RawPixel[i + 1];
+		B = RawPixel[i + 2];
 		uint32 color = (R << 22) | (G << 12) | (B << 2) | 3;
-		StylizedImageCPU.Add(color);
-	}
+
+		StylizedImageCPU[Idx] = color;
+	});
 }
 
 //------------------------------------------------------------------------------
-void FRealtimeStyleTransferViewExtension::ApplyStyle() {
-
-	// cv::imwrite("C:/code/ue5-onnxruntime/FPStyleTransfer/Content/inputImage.png", inputImage);
+void FRealtimeStyleTransferViewExtension::ApplyStyle() 
+{
 	// create network and run model
 	ModelOutputImage.Reset();
 	myNetwork->URunModel(ModelInputImage, ModelOutputImage);

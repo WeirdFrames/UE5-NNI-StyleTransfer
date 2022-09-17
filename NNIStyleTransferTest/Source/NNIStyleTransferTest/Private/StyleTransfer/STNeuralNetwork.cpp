@@ -35,6 +35,9 @@ void USTNeuralNetwork::URunModel(TArray<float>& image, TArray<uint8>& results)
 		return;
 	}
 
+	// start timer
+	double startSeconds = FPlatformTime::Seconds();
+
 	// Running inference
 	Network->SetInputFromArrayCopy(image); // Equivalent: Network->SetInputFromVoidPointerCopy(InArray.GetData());
 
@@ -49,13 +52,18 @@ void USTNeuralNetwork::URunModel(TArray<float>& image, TArray<uint8>& results)
 	results.Reset();
 	int channelStride = image.Num() / 3;
 
-	results.Reserve(channelStride * 4);
+	results.SetNumZeroed(channelStride * 4);
 
-	for (size_t i = 0; i < channelStride; i++) {
-		results.Add(FloatToColor(OutputTensor[channelStride * 2 + i])); // B
-		results.Add(FloatToColor(OutputTensor[channelStride + i]));		// G
-		results.Add(FloatToColor(OutputTensor[i]));						// R
-	}
+	ParallelFor(channelStride, [&](int32 Idx) {
+		const int i = Idx *3;
+		
+		results[i] = FloatToColor(OutputTensor[channelStride * 2 + Idx]);
+		results[i + 1] = FloatToColor(OutputTensor[channelStride + Idx]);
+		results[i + 2] = FloatToColor(OutputTensor[Idx]);
+		});
 
-	UE_LOG(LogTemp, Log, TEXT("Results created successfully."))
+	// print time elapsed
+	double secondsElapsed = FPlatformTime::Seconds() - startSeconds;
+
+	UE_LOG(LogTemp, Log, TEXT("Results created successfully in %f."), secondsElapsed)
 }
