@@ -13,30 +13,23 @@ public class NNIStyleTransferTest : ModuleRules
 
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
+        // Include path for rendering dependencies
         PrivateIncludePaths.AddRange(new string[] { Path.Combine(EngineDirectory, "Source/Runtime/Renderer/Private") });
 
         PublicDependencyModuleNames.AddRange(new string[] {
             "Core",
-            "CoreUObject", 
-            "Engine", 
-            "OpenCV", 
-            "OpenCVHelper", 
-            "InputCore", 
-            "HeadMountedDisplay"
+            "CoreUObject",
+            "Engine",
+            "InputCore",
+            // Rendering dependencies
+            "Renderer",
+            "RenderCore",
+            "RHI",
+            "RHICore",
+            "D3D12RHI",
+            // OpenCV dependencies
+            "OpenCV",
+            "OpenCVHelper",
         });
-
-        PrivateDependencyModuleNames.AddRange(new string[]{
-                    "Core",
-                    "CoreUObject",
-                    "Engine",
-                    "Renderer",
-                    "RenderCore",
-                    "RHI",
-                    "RHICore",
-                    "D3D12RHI",
-                    "OpenCV",
-                    "OpenCVHelper"
-        });
-
     }
 }
