@@ -4,13 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "NeuralNetwork.h"
-// OpenCV
-#include "PreOpenCVHeaders.h"
-#include "OpenCVHelper.h"
-#include <ThirdParty/OpenCV/include/opencv2/imgproc.hpp>
-#include <ThirdParty/OpenCV/include/opencv2/highgui/highgui.hpp>
-#include <ThirdParty/OpenCV/include/opencv2/core.hpp>
-#include "PostOpenCVHeaders.h"
 
 #include "STNeuralNetwork.generated.h"
 

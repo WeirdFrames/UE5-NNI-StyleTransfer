@@ -3,22 +3,6 @@
 
 #include "StyleTransfer/STNeuralNetwork.h"
 
-#include <fstream>
-#include <iostream>
-#include <array>
-#include <string>
-#include <filesystem>
-
-// Import Open CV
-#include "PreOpenCVHeaders.h"
-#include "OpenCVHelper.h"
-#include <ThirdParty/OpenCV/include/opencv2/imgproc.hpp>
-#include <ThirdParty/OpenCV/include/opencv2/highgui/highgui.hpp>
-#include <ThirdParty/OpenCV/include/opencv2/core.hpp>
-#include "PostOpenCVHeaders.h"
-
-using namespace std;
-using namespace cv;
 
 USTNeuralNetwork::USTNeuralNetwork()
 {
