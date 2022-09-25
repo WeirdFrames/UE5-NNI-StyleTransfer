@@ -6,11 +6,11 @@
 
 To learn more about this project have a look ath the **Medium** series written by [Giuseppe Vecchio]().
 
-[Part 1. - Introduction](https://medium.com/p/aa84c8c05ffa)
+[Part 1. - Introduction](https://medium.com/@weirdframes/bringing-deep-learning-to-unreal-engine-5-pt-1-aa84c8c05ffa)
 
-[Part 2. - Setting up the project]() - Coming soon!
+[Part 2. - NNI for Real-Time Style Transfer](https://medium.com/@weirdframes/bringing-deep-learning-to-unreal-engine-5-pt-2-51c1a2a2c3)
 
-[Part 3. - Conclusions]() - Coming soon!
+[Part 3.]() - Coming soon!
 
 ---
 
